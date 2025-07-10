@@ -97,12 +97,14 @@ const confirmDialog = () => {
   internalModel.value = false;
   emit('update:modelValue', false);
   emit('ok', inputValue.value);
+  inputValue.value = ''
 };
 
 const cancelDialog = () => {
   internalModel.value = false;
   emit('update:modelValue', false);
   emit('cancel');
+   inputValue.value = ''
 };
 </script>
 
