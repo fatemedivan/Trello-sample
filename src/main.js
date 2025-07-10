@@ -8,7 +8,7 @@ import { Quasar } from 'quasar';
 import '@quasar/extras/material-icons/material-icons.css';
 import 'quasar/src/css/index.sass';
 
-import { QBtn, QCard, QLayout, QHeader, QToolbar, QPageContainer, QPage, QList, QItem, QItemSection, QItemLabel, Notify, Dialog, QDialog, QSpace, QInput, QCardActions } from 'quasar';
+import { QBtn, QCard, QLayout, QHeader, QToolbar, QPageContainer, QPage, QList, QItem, QItemSection, QItemLabel, Notify, Dialog, QDialog, QSpace, QInput, QCardActions, QCardSection } from 'quasar';
 
 
 const app = createApp(App);
@@ -24,6 +24,7 @@ app.use(Quasar, {
     QSpace,
     QInput,
     QCardActions,
+    QCardSection
   },
 });
 

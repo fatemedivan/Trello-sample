@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import useWorkspacePage from './js/app';
+import useWorkspacePage from './utils/app';
 import BaseDialog from './components/‌BaseDialog.vue';
 const {
   columns,
