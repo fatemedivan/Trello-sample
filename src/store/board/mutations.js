@@ -1,13 +1,6 @@
 const mutations = {
   setColumns(state, columns) {
-    const tasks = Array.isArray(columns) ? columns : []
-    state.columns = tasks.map((col) => {
-      const colTasks = Array.isArray(col.tasks) ? col.tasks : []
-      return {
-        ...col,
-        tasks: colTasks,
-      }
-    })
+    state.columns = columns || []
   },
   addColumnToState(state, newColumn) {
     state.columns.push(newColumn)
