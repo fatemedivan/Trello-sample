@@ -9,10 +9,20 @@
 
       <q-card-section class="q-pt-sm">
         <div>{{ message }}</div>
+
         <q-input v-if="prompt" v-model="inputValue" :type="promptType" :label="promptLabel" outlined dense autofocus
           @keyup.enter="confirmDialog" :dark="isDarkMode" />
-        <q-checkbox v-model="allowDeleteTask" v-if="showDeleteTaskCheckBox" label="Allow task deleting" />
-        <q-checkbox v-model="allowEditTask" v-if="showEditTaskCheckBox" label="Allow task editing" />
+
+        <q-checkbox v-model="allowDeleteTask" v-if="showDeleteTaskCheckBox" label="Allow task deleting"
+          :dark="isDarkMode" color="primary" class="q-mt-sm" />
+        <q-checkbox v-model="allowEditTask" v-if="showEditTaskCheckBox" label="Allow task editing" :dark="isDarkMode"
+          color="primary" class="q-mt-sm" />
+
+        <q-checkbox v-model="allowDeleteColumn" v-if="showDeleteColumnCheckBox" label="Allow column deleting"
+          :dark="isDarkMode" color="primary" class="q-mt-sm" />
+        <q-checkbox v-model="allowEditColumn" v-if="showEditColumnCheckBox" label="Allow column editing"
+          :dark="isDarkMode" color="primary" class="q-mt-sm" />
+
       </q-card-section>
 
       <q-card-actions align="right">
@@ -78,6 +88,14 @@ const props = defineProps({
   showEditTaskCheckBox: {
     type: Boolean,
     default: false
+  },
+  showDeleteColumnCheckBox: {
+    type: Boolean,
+    default: false
+  },
+  showEditColumnCheckBox: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -87,6 +105,8 @@ const internalModel = ref(props.modelValue);
 const inputValue = ref('');
 const allowDeleteTask = ref(false)
 const allowEditTask = ref(false)
+const allowDeleteColumn = ref(false);
+const allowEditColumn = ref(false);
 
 watch(() => props.modelValue, (newVal) => {
   internalModel.value = newVal;
@@ -98,7 +118,13 @@ const darkModeClass = computed(() => {
 
 const confirmDialog = () => {
   emit('update:modelValue', false);
-  emit('ok', inputValue.value, allowDeleteTask.value, allowEditTask.value);
+  emit('ok', {
+    inputValue: inputValue.value,
+    allowDeleteTask: allowDeleteTask.value,
+    allowEditTask: allowEditTask.value,
+    allowDeleteColumn: allowDeleteColumn.value,
+    allowEditColumn: allowEditColumn.value
+  });
   resetInputs()
 };
 
@@ -112,6 +138,8 @@ const resetInputs = () => {
   inputValue.value = ''
   allowDeleteTask.value = false
   allowEditTask.value = false
+  allowDeleteColumn.value = false
+  allowEditColumn.value = false
 }
 </script>
 

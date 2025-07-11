@@ -8,7 +8,11 @@
           "id": "1",
           "title": "learn mui"
         }
-      ]
+      ],
+      "allowDeleteTask": true,
+      "allowEditTask": true,
+      "allowDeleteColumn": true,
+      "allowEditColumn": true
     },
     {
       "id": "2",
@@ -18,12 +22,20 @@
           "id": "1",
           "title": "Learn Vue3"
         }
-      ]
+      ],
+      "allowDeleteTask": true,
+      "allowEditTask": true,
+      "allowDeleteColumn": true,
+      "allowEditColumn": true
     },
     {
       "id": "3",
       "name": "Done",
-      "tasks": []
+      "tasks": [],
+      "allowDeleteTask": true,
+      "allowEditTask": true,
+      "allowDeleteColumn": true,
+      "allowEditColumn": true
     }
   ]
 }

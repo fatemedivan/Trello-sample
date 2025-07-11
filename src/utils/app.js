@@ -23,7 +23,7 @@ export default function useWorkspacePage() {
   const currentColumnIdForEdit = ref(null);
   const currentTaskIdForEdit = ref(null);
 
-  const handleAddColumn = async (columnName, allowDeleteTask, allowEditTask) => {
+  const handleAddColumn = async ({ inputValue: columnName, allowDeleteTask, allowEditTask, allowDeleteColumn, allowEditColumn }) => {
     if (!columnName || columnName.trim().length === 0) {
       $q.notify({
         message: 'column title should not be empty',
@@ -33,7 +33,7 @@ export default function useWorkspacePage() {
       return;
     }
     try {
-      await store.dispatch('board/createColumn', { name: columnName.trim(), tasks: [], allowDeleteTask, allowEditTask });
+      await store.dispatch('board/createColumn', { name: columnName.trim(), tasks: [], allowDeleteTask, allowEditTask, allowDeleteColumn, allowEditColumn });
       $q.notify({
         message: 'column added successfully',
         color: 'positive',
@@ -70,7 +70,7 @@ export default function useWorkspacePage() {
     }
   };
 
-  const handleAddTask = async (taskTitle) => {
+  const handleAddTask = async ({ inputValue: taskTitle }) => {
     if (!taskTitle || taskTitle.trim().length === 0) {
       $q.notify({
         message: 'task title should not be empty',
@@ -127,7 +127,7 @@ export default function useWorkspacePage() {
     }
   };
 
-  const handleEditTask = async (newTaskTitle) => {
+  const handleEditTask = async ({ inputValue: newTaskTitle }) => {
     if (!newTaskTitle || newTaskTitle.trim().length === 0) {
       $q.notify({
         message: 'task title should not be empty',

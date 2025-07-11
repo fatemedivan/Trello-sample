@@ -14,8 +14,8 @@
               <div class="text-h6 flex justify-between items-center">
                 <span>{{ column.name }} ({{ column.tasks.length }})</span>
                 <div>
-                  <q-btn icon="add" flat round dense @click="openAddTaskDialog(column.id)" />
-                  <q-btn icon="delete" flat round dense color="negative" @click="openDeleteColumnDialog(column.id)" />
+                  <q-btn v-if="column.allowEditColumn" icon="add" flat round dense @click="openAddTaskDialog(column.id)" />
+                  <q-btn v-if="column.allowDeleteColumn" icon="delete" flat round dense color="negative" @click="openDeleteColumnDialog(column.id)" />
                 </div>
               </div>
             </q-card-section>
@@ -24,7 +24,8 @@
               <q-list separator class="q-mt-sm kanban-task-list">
                 <TaskItem v-for="task in column.tasks" :key="task.id" :title="task.title"
                   :openDeleteTaskDialog="openDeleteTaskDialog" :openEditeTaskDialog="openEditeTaskDialog"
-                  :columnId="column.id" :taskId="task.id" :allowDeleteTask="column.allowDeleteTask" :allowEditTask="column.allowEditTask"/>
+                  :columnId="column.id" :taskId="task.id" :allowDeleteTask="column.allowDeleteTask"
+                  :allowEditTask="column.allowEditTask" />
 
                 <q-item v-if="column.tasks.length === 0" class="kanban-empty-message">
                   <q-item-section>No tasks available.</q-item-section>
@@ -36,7 +37,8 @@
 
         <BaseDialog v-model="showAddColumnDialog" title="Add New Column" message="Enter column name:" prompt
           promptType="text" promptLabel="Column Name" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddColumn"
-          :showDeleteTaskCheckBox="true" :showEditTaskCheckBox="true" />
+          :showDeleteTaskCheckBox="true" :showEditTaskCheckBox="true" :showDeleteColumnCheckBox="true"
+          :showEditColumnCheckBox="true" />
 
         <BaseDialog v-model="showAddTaskDialog" title="Add New Task" message="Enter task title:" prompt
           promptType="text" promptLabel="Task Title" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddTask" />
