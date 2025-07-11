@@ -22,15 +22,8 @@
 
             <q-card-section>
               <q-list separator class="q-mt-sm kanban-task-list">
-                <q-item v-for="task in column.tasks" :key="task.id" class="q-my-sm q-py-sm kanban-task-item">
-                  <q-item-section>
-                    <q-item-label>{{ task.title }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-btn icon="delete" flat round dense color="red"
-                      @click="openDeleteTaskDialog(column.id, task.id)" />
-                  </q-item-section>
-                </q-item>
+                <TaskItem v-for="task in column.tasks" :key="task.id" :title="task.title"
+                  :openDeleteTaskDialog="openDeleteTaskDialog" :columnId="column.id" :taskId="task.id" />
 
                 <q-item v-if="column.tasks.length === 0" class="kanban-empty-message">
                   <q-item-section>No tasks available.</q-item-section>
@@ -40,17 +33,17 @@
           </q-card>
         </div>
 
-        <BaseDialog  v-model="showAddColumnDialog" title="Add New Column" message="Enter column name:" prompt
+        <BaseDialog v-model="showAddColumnDialog" title="Add New Column" message="Enter column name:" prompt
           promptType="text" promptLabel="Column Name" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddColumn" />
 
-        <BaseDialog  v-model="showAddTaskDialog" title="Add New Task" message="Enter task title:" prompt
+        <BaseDialog v-model="showAddTaskDialog" title="Add New Task" message="Enter task title:" prompt
           promptType="text" promptLabel="Task Title" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddTask" />
 
-        <BaseDialog  v-model="showDeleteColumnDialog" title="Delete Column"
+        <BaseDialog v-model="showDeleteColumnDialog" title="Delete Column"
           message="Are you sure you want to delete this column and all its tasks?" okButtonLabel="Delete"
           okButtonColor="negative" :isDarkMode="true" @ok="handleDeleteColumn" />
 
-        <BaseDialog  v-model="showDeleteTaskDialog" title="Delete Task"
+        <BaseDialog v-model="showDeleteTaskDialog" title="Delete Task"
           message="Are you sure you want to delete this task?" okButtonLabel="Delete" okButtonColor="negative"
           :isDarkMode="true" @ok="handleDeleteTask" />
       </q-page>
@@ -61,6 +54,7 @@
 <script setup>
 import useWorkspacePage from './utils/app';
 import BaseDialog from './components/‌BaseDialog.vue';
+import TaskItem from './components/TaskItem.vue';
 const {
   columns,
   showAddColumnDialog,
