@@ -13,8 +13,12 @@ const actions = {
       throw error
     }
   },
-  async createColumn({ commit }, newColumnData) {
+  async createColumn({ commit, state }, newColumnData) {
     try {
+      const columnExists = state.columns.some(col => col.name.toLowerCase() === newColumnData.name.trim().toLowerCase())
+      if (columnExists) {
+        throw new Error('Column with this title already exists.')
+      }
       const newColumn = await postColumn(newColumnData)
       commit('addColumnToState', newColumn)
     } catch (error) {
@@ -31,47 +35,50 @@ const actions = {
       throw error
     }
   },
-    async addTask({ commit, state }, { columnId, newTaskData }) {
-        try {
-            const column = state.columns.find(col => col.id === columnId);
-            if (!column) {
-                throw new Error('Column not found.');
-            }
-            const newTaskId = Math.random() + columnId;
-            const newTask = {
-                id: newTaskId,
-                title: newTaskData.title.trim(),
-            };
+  async addTask({ commit, state }, { columnId, newTaskData }) {
+    try {
+      const column = state.columns.find(col => col.id === columnId);
+      if (!column) {
+        throw new Error('Column not found.');
+      }
+      const taskExits = column.tasks.some(task => task.title.toLowerCase() === newTaskData.title.trim().toLowerCase())
+      if (taskExits) {
+        throw new Error('Task with this title already exists in this column.')
+      }
+      const newTaskId = Math.random() + columnId;
+      const newTask = {
+        id: newTaskId,
+        title: newTaskData.title.trim(),
+      };
 
-          
-            const updatedTasks = [...column.tasks, newTask];
+      const updatedTasks = [...column.tasks, newTask];
 
-            await updateColumnTasks(columnId, updatedTasks);
+      await updateColumnTasks(columnId, updatedTasks);
 
-            commit('addTaskToColumnState', { columnId, newTask });
-        } catch (error) {
-            console.error('Error adding task in Vuex action:', error);
-            throw error;
-        }
-    },
+      commit('addTaskToColumnState', { columnId, newTask });
+    } catch (error) {
+      console.error('Error adding task in Vuex action:', error);
+      throw error;
+    }
+  },
 
-    async removeTask({ commit, state }, { columnId, taskId }) {
-        try {
-            const column = state.columns.find(col => col.id === columnId);
-            if (!column) {
-                throw new Error('Column not found.');
-            }
+  async removeTask({ commit, state }, { columnId, taskId }) {
+    try {
+      const column = state.columns.find(col => col.id === columnId);
+      if (!column) {
+        throw new Error('Column not found.');
+      }
 
-            const updatedTasks = column.tasks.filter(task => task.id !== taskId);
+      const updatedTasks = column.tasks.filter(task => task.id !== taskId);
 
-            await updateColumnTasks(columnId, updatedTasks);
+      await updateColumnTasks(columnId, updatedTasks);
 
-            commit('removeTaskFromColumnState', { columnId, taskId });
-        } catch (error) {
-            console.error('Error deleting task in Vuex action:', error);
-            throw error;
-        }
-    },
+      commit('removeTaskFromColumnState', { columnId, taskId });
+    } catch (error) {
+      console.error('Error deleting task in Vuex action:', error);
+      throw error;
+    }
+  },
 }
 
 export default actions
