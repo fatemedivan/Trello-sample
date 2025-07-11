@@ -1,5 +1,5 @@
 <template>
-  <q-dialog  v-model="internalModel" persistent>
+  <q-dialog v-model="internalModel" persistent>
     <q-card :class="['q-pa-md', darkModeClass]">
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">{{ title }}</div>
@@ -9,17 +9,10 @@
 
       <q-card-section class="q-pt-sm">
         <div>{{ message }}</div>
-        <q-input
-          v-if="prompt"
-          v-model="inputValue"
-          :type="promptType"
-          :label="promptLabel"
-          outlined
-          dense
-          autofocus
-          @keyup.enter="confirmDialog"
-          :dark="isDarkMode"
-        />
+        <q-input v-if="prompt" v-model="inputValue" :type="promptType" :label="promptLabel" outlined dense autofocus
+          @keyup.enter="confirmDialog" :dark="isDarkMode" />
+        <q-checkbox v-model="allowDeleteTask" v-if="showDeleteTaskCheckBox" label="Allow task deleting" />
+        <q-checkbox v-model="allowEditTask" v-if="showEditTaskCheckBox" label="Allow task editing" />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -77,6 +70,14 @@ const props = defineProps({
   isDarkMode: {
     type: Boolean,
     default: false,
+  },
+  showDeleteTaskCheckBox: {
+    type: Boolean,
+    default: false
+  },
+  showEditTaskCheckBox: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -84,6 +85,8 @@ const emit = defineEmits(['update:modelValue', 'ok', 'cancel']);
 
 const internalModel = ref(props.modelValue);
 const inputValue = ref('');
+const allowDeleteTask = ref(false)
+const allowEditTask = ref(false)
 
 watch(() => props.modelValue, (newVal) => {
   internalModel.value = newVal;
@@ -94,18 +97,22 @@ const darkModeClass = computed(() => {
 });
 
 const confirmDialog = () => {
-  internalModel.value = false;
   emit('update:modelValue', false);
-  emit('ok', inputValue.value);
-  inputValue.value = ''
+  emit('ok', inputValue.value, allowDeleteTask.value, allowEditTask.value);
+  resetInputs()
 };
 
 const cancelDialog = () => {
-  internalModel.value = false;
   emit('update:modelValue', false);
   emit('cancel');
-   inputValue.value = ''
+  resetInputs()
 };
+const resetInputs = () => {
+  internalModel.value = false
+  inputValue.value = ''
+  allowDeleteTask.value = false
+  allowEditTask.value = false
+}
 </script>
 
 <style scoped>

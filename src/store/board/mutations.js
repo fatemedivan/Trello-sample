@@ -22,6 +22,17 @@ const mutations = {
       )
     }
   },
+ editTaskInColumnState(state, { columnId, updatedTask }) { 
+    const columnIndex = state.columns.findIndex((col) => col.id === columnId);
+    if (columnIndex !== -1) {
+      const taskIndex = state.columns[columnIndex].tasks.findIndex(
+        (task) => task.id === updatedTask.id
+      );
+      if (taskIndex !== -1) {
+        state.columns[columnIndex].tasks[taskIndex] = updatedTask;
+      }
+    }
+  }
 }
 
 export default mutations

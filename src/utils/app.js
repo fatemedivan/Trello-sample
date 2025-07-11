@@ -14,13 +14,16 @@ export default function useWorkspacePage() {
   const showAddTaskDialog = ref(false);
   const showDeleteColumnDialog = ref(false);
   const showDeleteTaskDialog = ref(false);
+  const showEditeTaskDialog = ref(false)
 
   // متغیرهای موقت برای نگهداری اطلاعات مربوط به عملیات
   const currentColumnIdForTask = ref(null);
   const currentColumnIdForDelete = ref(null);
   const currentTaskIdForDelete = ref(null);
+  const currentColumnIdForEdit = ref(null);
+  const currentTaskIdForEdit = ref(null);
 
-  const handleAddColumn = async (columnName) => {
+  const handleAddColumn = async (columnName, allowDeleteTask, allowEditTask) => {
     if (!columnName || columnName.trim().length === 0) {
       $q.notify({
         message: 'column title should not be empty',
@@ -30,7 +33,7 @@ export default function useWorkspacePage() {
       return;
     }
     try {
-      await store.dispatch('board/createColumn', { name: columnName.trim(), tasks: [] });
+      await store.dispatch('board/createColumn', { name: columnName.trim(), tasks: [], allowDeleteTask, allowEditTask });
       $q.notify({
         message: 'column added successfully',
         color: 'positive',
@@ -54,7 +57,7 @@ export default function useWorkspacePage() {
         color: 'info',
         icon: 'delete_forever',
       });
-     
+
       showDeleteColumnDialog.value = false;
     } catch (error) {
       $q.notify({
@@ -86,7 +89,7 @@ export default function useWorkspacePage() {
         color: 'positive',
         icon: 'check_circle',
       });
-     
+
       showAddTaskDialog.value = false;
     } catch (error) {
       $q.notify({
@@ -124,6 +127,40 @@ export default function useWorkspacePage() {
     }
   };
 
+  const handleEditTask = async (newTaskTitle) => {
+    if (!newTaskTitle || newTaskTitle.trim().length === 0) {
+      $q.notify({
+        message: 'task title should not be empty',
+        color: 'negative',
+        icon: 'warning',
+      });
+      return;
+    }
+    try {
+      await store.dispatch('board/editTask', {
+        columnId: currentColumnIdForEdit.value,
+        newTaskData: { title: newTaskTitle.trim(), id: currentTaskIdForEdit.value }
+      })
+      $q.notify({
+        message: 'task edited successfully',
+        color: 'positive',
+        icon: 'check_circle',
+      });
+
+      showEditeTaskDialog.value = false;
+    } catch (error) {
+      $q.notify({
+        message: error.message,
+        color: 'negative',
+        icon: 'error',
+      });
+    } finally {
+      currentColumnIdForEdit.value = null
+      currentTaskIdForEdit.value = null
+    }
+
+  }
+
   const openAddTaskDialog = (columnId) => {
     currentColumnIdForTask.value = columnId;
     showAddTaskDialog.value = true;
@@ -139,6 +176,12 @@ export default function useWorkspacePage() {
     currentTaskIdForDelete.value = taskId;
     showDeleteTaskDialog.value = true;
   };
+
+  const openEditeTaskDialog = (columnId, taskId) => {
+    currentTaskIdForEdit.value = taskId
+    currentColumnIdForEdit.value = columnId
+    showEditeTaskDialog.value = true
+  }
 
   onMounted(async () => {
     try {
@@ -158,12 +201,15 @@ export default function useWorkspacePage() {
     showAddTaskDialog,
     showDeleteColumnDialog,
     showDeleteTaskDialog,
+    showEditeTaskDialog,
     handleAddColumn,
     handleDeleteColumn,
     handleAddTask,
     handleDeleteTask,
+    handleEditTask,
     openAddTaskDialog,
     openDeleteColumnDialog,
     openDeleteTaskDialog,
+    openEditeTaskDialog
   };
 }

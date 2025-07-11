@@ -23,7 +23,8 @@
             <q-card-section>
               <q-list separator class="q-mt-sm kanban-task-list">
                 <TaskItem v-for="task in column.tasks" :key="task.id" :title="task.title"
-                  :openDeleteTaskDialog="openDeleteTaskDialog" :columnId="column.id" :taskId="task.id" />
+                  :openDeleteTaskDialog="openDeleteTaskDialog" :openEditeTaskDialog="openEditeTaskDialog"
+                  :columnId="column.id" :taskId="task.id" :allowDeleteTask="column.allowDeleteTask" :allowEditTask="column.allowEditTask"/>
 
                 <q-item v-if="column.tasks.length === 0" class="kanban-empty-message">
                   <q-item-section>No tasks available.</q-item-section>
@@ -34,7 +35,8 @@
         </div>
 
         <BaseDialog v-model="showAddColumnDialog" title="Add New Column" message="Enter column name:" prompt
-          promptType="text" promptLabel="Column Name" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddColumn" />
+          promptType="text" promptLabel="Column Name" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddColumn"
+          :showDeleteTaskCheckBox="true" :showEditTaskCheckBox="true" />
 
         <BaseDialog v-model="showAddTaskDialog" title="Add New Task" message="Enter task title:" prompt
           promptType="text" promptLabel="Task Title" okButtonLabel="Add" :isDarkMode="true" @ok="handleAddTask" />
@@ -46,6 +48,9 @@
         <BaseDialog v-model="showDeleteTaskDialog" title="Delete Task"
           message="Are you sure you want to delete this task?" okButtonLabel="Delete" okButtonColor="negative"
           :isDarkMode="true" @ok="handleDeleteTask" />
+
+        <BaseDialog v-model="showEditeTaskDialog" message="Enter new task title:" title="Edit Task" okButtonLabel="Add"
+          prompt promptType="text" promptLabel="New Task Title" :isDarkMode="true" @ok="handleEditTask" />
       </q-page>
     </QPageContainer>
   </QLayout>
@@ -61,13 +66,16 @@ const {
   showAddTaskDialog,
   showDeleteColumnDialog,
   showDeleteTaskDialog,
+  showEditeTaskDialog,
   handleAddColumn,
   handleDeleteColumn,
   handleAddTask,
   handleDeleteTask,
+  handleEditTask,
   openAddTaskDialog,
   openDeleteColumnDialog,
   openDeleteTaskDialog,
+  openEditeTaskDialog
 } = useWorkspacePage();
 </script>
 

@@ -79,6 +79,43 @@ const actions = {
       throw error;
     }
   },
+
+  async editTask({ commit, state }, { columnId, newTaskData }) {
+    try {
+
+      const column = state.columns.find(col => col.id === columnId)
+      if (!column) {
+        throw new Error('Column not found.');
+      }
+
+      const taskIndex = column.tasks.findIndex(task => task.id === newTaskData.id);
+      if (taskIndex === -1) {
+        throw new Error('task not found in this column');
+      }
+
+      const originalTask = column.tasks[taskIndex];
+      if (newTaskData.title && newTaskData.title.toLowerCase().trim() !== originalTask.title.toLowerCase().trim()) {
+        const titleExists = column.tasks.some(
+          (task, index) => index !== taskIndex && task.title.toLowerCase() === newTaskData.title.toLowerCase().trim()
+        );
+        if (titleExists) {
+          throw new Error('Another task with this title already exists in this column.');
+        }
+      }
+
+      const updatedTask = { ...newTaskData };
+
+      const newTasksArray = [...column.tasks];
+      newTasksArray[taskIndex] = updatedTask;
+      await updateColumnTasks(columnId, newTasksArray);
+      commit('editTaskInColumnState', { columnId, updatedTask });
+
+    } catch (error) {
+      console.error('Error editing task in Vuex action:', error);
+      throw error;
+    }
+
+  }
 }
 
 export default actions
