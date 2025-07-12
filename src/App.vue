@@ -9,23 +9,26 @@
         </div>
 
         <div class="row items-start kanban-columns-container">
-          <q-card v-for="column in columns" :key="column.id" class="kanban-column-wrapper">
+          <q-card v-for="column in columns" :key="column.id" class="kanban-column-wrapper"
+            @dragover.prevent='onDragOverColumn' @drop="onDropConfirm(column.id)">
             <q-card-section class="kanban-column-header q-pb-none">
               <div class="text-h6 flex justify-between items-center">
                 <span>{{ column.name }} ({{ column.tasks.length }})</span>
                 <div>
-                  <q-btn v-if="column.allowEditColumn" icon="add" flat round dense @click="openAddTaskDialog(column.id)" />
-                  <q-btn v-if="column.allowDeleteColumn" icon="delete" flat round dense color="negative" @click="openDeleteColumnDialog(column.id)" />
+                  <q-btn v-if="column.allowEditColumn" icon="add" flat round dense
+                    @click="openAddTaskDialog(column.id)" />
+                  <q-btn v-if="column.allowDeleteColumn" icon="delete" flat round dense color="negative"
+                    @click="openDeleteColumnDialog(column.id)" />
                 </div>
               </div>
             </q-card-section>
 
             <q-card-section>
               <q-list separator class="q-mt-sm kanban-task-list">
-                <TaskItem v-for="task in column.tasks" :key="task.id" :title="task.title"
-                  :openDeleteTaskDialog="openDeleteTaskDialog" :openEditeTaskDialog="openEditeTaskDialog"
-                  :columnId="column.id" :taskId="task.id" :allowDeleteTask="column.allowDeleteTask"
-                  :allowEditTask="column.allowEditTask" />
+                <TaskItem @task-drag-start="onTaskDragStart" v-for="task in column.tasks" :key="task.id"
+                  :title="task.title" :openDeleteTaskDialog="openDeleteTaskDialog"
+                  :openEditeTaskDialog="openEditeTaskDialog" :columnId="column.id" :taskId="task.id"
+                  :allowDeleteTask="column.allowDeleteTask" :allowEditTask="column.allowEditTask" />
 
                 <q-item v-if="column.tasks.length === 0" class="kanban-empty-message">
                   <q-item-section>No tasks available.</q-item-section>
@@ -53,6 +56,11 @@
 
         <BaseDialog v-model="showEditeTaskDialog" message="Enter new task title:" title="Edit Task" okButtonLabel="Add"
           prompt promptType="text" promptLabel="New Task Title" :isDarkMode="true" @ok="handleEditTask" />
+
+        <BaseDialog v-model="showMoveTaskDialog" title="Move Task"
+          message="Are you sure you want to move this task in this column?" okButtonLabel="Move"
+          :isDarkMode="true" @ok="handleMoveTaskconfirmation" @cancel="cancelMoveTask"/>
+
       </q-page>
     </QPageContainer>
   </QLayout>
@@ -62,6 +70,7 @@
 import useWorkspacePage from './utils/app';
 import BaseDialog from './components/‌BaseDialog.vue';
 import TaskItem from './components/TaskItem.vue';
+
 const {
   columns,
   showAddColumnDialog,
@@ -69,15 +78,21 @@ const {
   showDeleteColumnDialog,
   showDeleteTaskDialog,
   showEditeTaskDialog,
+  showMoveTaskDialog,
   handleAddColumn,
   handleDeleteColumn,
   handleAddTask,
   handleDeleteTask,
   handleEditTask,
+  handleMoveTaskconfirmation,
+  cancelMoveTask,
   openAddTaskDialog,
   openDeleteColumnDialog,
   openDeleteTaskDialog,
-  openEditeTaskDialog
+  openEditeTaskDialog,
+  onTaskDragStart,
+  onDragOverColumn,
+  onDropConfirm
 } = useWorkspacePage();
 </script>
 

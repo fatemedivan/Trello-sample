@@ -115,7 +115,40 @@ const actions = {
       throw error;
     }
 
-  }
+  },
+
+  async moveTask({ commit, state }, { sourceColumnId, targetColumnId, taskId }) {
+    try {
+      const sourceColumn = state.columns.find(col => col.id === sourceColumnId)
+      const targetColumn = state.columns.find(col => col.id === targetColumnId)
+
+      if (!sourceColumn) {
+        throw new Error('source column not found');
+      }
+      if (!targetColumn) {
+        throw new Error('target column not found');
+      }
+
+      const taskToMoveIndex = sourceColumn.tasks.findIndex(task => task.id === taskId)
+      if (taskToMoveIndex === -1) {
+        throw new Error('task not found in source column');
+      }
+
+      const taskToMove = sourceColumn.tasks[taskToMoveIndex]
+
+      const updatedSourceTasks = sourceColumn.tasks.filter(task => task.id !== taskId)
+      const updatedTargetTasks = [...targetColumn.tasks, taskToMove]
+
+      await updateColumnTasks(sourceColumnId, updatedSourceTasks)
+      await updateColumnTasks(targetColumnId, updatedTargetTasks)
+      commit('moveTaskInState', { sourceColumnId, targetColumnId, taskId, taskToMove })
+
+    } catch (error) {
+      console.error('Error moving task in Vuex action:', error);
+      throw error;
+    }
+
+  },
 }
 
 export default actions

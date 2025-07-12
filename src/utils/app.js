@@ -15,6 +15,7 @@ export default function useWorkspacePage() {
   const showDeleteColumnDialog = ref(false);
   const showDeleteTaskDialog = ref(false);
   const showEditeTaskDialog = ref(false)
+  const showMoveTaskDialog = ref(false)
 
   // متغیرهای موقت برای نگهداری اطلاعات مربوط به عملیات
   const currentColumnIdForTask = ref(null);
@@ -22,6 +23,9 @@ export default function useWorkspacePage() {
   const currentTaskIdForDelete = ref(null);
   const currentColumnIdForEdit = ref(null);
   const currentTaskIdForEdit = ref(null);
+  const currentColumnIdForMove = ref(null);
+
+  const draggingTask = ref(null);
 
   const handleAddColumn = async ({ inputValue: columnName, allowDeleteTask, allowEditTask, allowDeleteColumn, allowEditColumn }) => {
     if (!columnName || columnName.trim().length === 0) {
@@ -183,6 +187,88 @@ export default function useWorkspacePage() {
     showEditeTaskDialog.value = true
   }
 
+  const openMoveTaskDialog = (columnId) => {
+    currentColumnIdForMove.value = columnId
+    showMoveTaskDialog.value = true
+  }
+
+  const onTaskDragStart = (payload) => {
+    const { columnId, taskId } = payload
+    draggingTask.value = { columnId, taskId }
+  }
+
+  const onDragOverColumn = (event) => {
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  const onDropConfirm = async (targetColumnId) => {
+
+    if (!draggingTask.value) return
+
+    const sourceColumnId = draggingTask.value.columnId
+    const targetColumn = columns.value.find(col => col.id === targetColumnId)
+
+    if (sourceColumnId === targetColumnId) {
+      draggingTask.value = null
+      return
+    }
+
+    if (targetColumn && !targetColumn.allowEditColumn) {
+      $q.notify({
+        message: 'you are not allowed to add task in this column',
+        color: 'negative',
+        icon: 'warning',
+
+      });
+      draggingTask.value = null;
+      return;
+    }
+    currentColumnIdForMove.value = targetColumnId;
+    showMoveTaskDialog.value = true;
+
+  }
+
+  const handleMoveTaskconfirmation = async () => {
+    const sourceColumnId = draggingTask.value.columnId
+    const taskId = draggingTask.value.taskId
+    const targetColumnId = currentColumnIdForMove.value
+  
+    try {
+      await store.dispatch('board/moveTask', {
+        sourceColumnId,
+        targetColumnId,
+        taskId
+      })
+
+      $q.notify({
+        message: 'task moved successfully',
+        color: 'positive',
+        icon: 'check_circle',
+      });
+
+    } catch (error) {
+      $q.notify({
+        message: error.message || 'error in dropping task',
+        color: 'negative',
+        icon: 'error'
+      });
+    } finally {
+      draggingTask.value = null;
+      currentColumnIdForMove.value = null;
+      showMoveTaskDialog.value = false;
+    }
+  }
+  const cancelMoveTask = () => {
+    $q.notify({
+      message: 'moving task canceled',
+      color: 'info',
+      icon: 'cancel',
+    });
+    draggingTask.value = null; 
+    currentColumnIdForMove.value = null; 
+    showMoveTaskDialog.value = false; 
+  };
+
   onMounted(async () => {
     try {
       await store.dispatch('board/fetchColumns');
@@ -202,14 +288,21 @@ export default function useWorkspacePage() {
     showDeleteColumnDialog,
     showDeleteTaskDialog,
     showEditeTaskDialog,
+    showMoveTaskDialog,
     handleAddColumn,
     handleDeleteColumn,
     handleAddTask,
     handleDeleteTask,
     handleEditTask,
+    handleMoveTaskconfirmation,
+    cancelMoveTask,
     openAddTaskDialog,
     openDeleteColumnDialog,
     openDeleteTaskDialog,
-    openEditeTaskDialog
+    openEditeTaskDialog,
+    openMoveTaskDialog,
+    onTaskDragStart,
+    onDragOverColumn,
+    onDropConfirm
   };
 }

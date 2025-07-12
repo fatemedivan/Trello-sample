@@ -32,7 +32,17 @@ const mutations = {
         state.columns[columnIndex].tasks[taskIndex] = updatedTask;
       }
     }
-  }
+  },
+   moveTaskInState(state, { sourceColumnId, targetColumnId, taskId, taskToMove }) {
+    const sourceColumnIndex = state.columns.findIndex(col => col.id === sourceColumnId)
+    const targetColumnIndex = state.columns.findIndex(col => col.id === targetColumnId)
+   
+    if (sourceColumnIndex !== -1 && targetColumnIndex !== -1) {
+      state.columns[sourceColumnIndex].tasks = state.columns[sourceColumnIndex].tasks.filter(task => task.id !== taskId)
+      state.columns[targetColumnIndex].tasks.push(taskToMove)
+    }
+    
+  },
 }
 
 export default mutations
