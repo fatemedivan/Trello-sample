@@ -7,7 +7,8 @@ export default function useWorkspacePage() {
   const $q = useQuasar();
   const store = useStore();
 
-  const columns = computed(() => store.state.board.columns);
+  const columns = computed(() => store.getters['board/getColumns']);
+
 
   // متغیرهای Ref برای کنترل نمایش دیالوگ‌ها
   const showAddColumnDialog = ref(false);
@@ -206,7 +207,7 @@ export default function useWorkspacePage() {
     if (!draggingTask.value) return
 
     const sourceColumnId = draggingTask.value.columnId
-    const targetColumn = columns.value.find(col => col.id === targetColumnId)
+    const targetColumn = store.getters['board/getColumnById'](targetColumnId);
 
     if (sourceColumnId === targetColumnId) {
       draggingTask.value = null
@@ -232,7 +233,7 @@ export default function useWorkspacePage() {
     const sourceColumnId = draggingTask.value.columnId
     const taskId = draggingTask.value.taskId
     const targetColumnId = currentColumnIdForMove.value
-  
+
     try {
       await store.dispatch('board/moveTask', {
         sourceColumnId,
@@ -264,9 +265,9 @@ export default function useWorkspacePage() {
       color: 'info',
       icon: 'cancel',
     });
-    draggingTask.value = null; 
-    currentColumnIdForMove.value = null; 
-    showMoveTaskDialog.value = false; 
+    draggingTask.value = null;
+    currentColumnIdForMove.value = null;
+    showMoveTaskDialog.value = false;
   };
 
   onMounted(async () => {
