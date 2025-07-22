@@ -22,7 +22,7 @@ const mutations = {
       )
     }
   },
- editTaskInColumnState(state, { columnId, updatedTask }) { 
+  editTaskInColumnState(state, { columnId, updatedTask }) {
     const columnIndex = state.columns.findIndex((col) => col.id === columnId);
     if (columnIndex !== -1) {
       const taskIndex = state.columns[columnIndex].tasks.findIndex(
@@ -33,15 +33,26 @@ const mutations = {
       }
     }
   },
-   moveTaskInState(state, { sourceColumnId, targetColumnId, taskId, taskToMove }) {
+  moveTaskInState(state, { sourceColumnId, targetColumnId, taskId, taskToMove }) {
     const sourceColumnIndex = state.columns.findIndex(col => col.id === sourceColumnId)
     const targetColumnIndex = state.columns.findIndex(col => col.id === targetColumnId)
-   
+
     if (sourceColumnIndex !== -1 && targetColumnIndex !== -1) {
       state.columns[sourceColumnIndex].tasks = state.columns[sourceColumnIndex].tasks.filter(task => task.id !== taskId)
       state.columns[targetColumnIndex].tasks.push(taskToMove)
     }
-    
+
+  },
+  setDraggingTask(state, payload) {
+    state.draggingTask = payload
+  },
+  setCurrentId(state, { key, value }) {
+    if (key in state) {
+      state[key] = value
+    }
+  },
+  setDialogState(state, { dialogName, value }) {
+    state.dialogs[dialogName] = value
   },
 }
 

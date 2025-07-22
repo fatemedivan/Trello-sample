@@ -1,4 +1,4 @@
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import useNotifier from './Notif';
 
@@ -6,27 +6,38 @@ export default function useWorkspacePage() {
   const store = useStore();
   const { notify } = useNotifier();
 
+  // --- Getters
   const columns = computed(() => store.getters['board/getColumns']);
+  const draggingTask = computed(() => store.getters['board/draggingTask']);
 
-  const showAddColumnDialog = ref(false);
-  const showAddTaskDialog = ref(false);
-  const showDeleteColumnDialog = ref(false);
-  const showDeleteTaskDialog = ref(false);
-  const showEditeTaskDialog = ref(false);
-  const showMoveTaskDialog = ref(false);
+  const getDialog = (name) => computed(() => store.getters['board/getDialogState'](name));
+  const showAddColumnDialog = getDialog('showAddColumn');
+  const showAddTaskDialog = getDialog('showAddTask');
+  const showDeleteColumnDialog = getDialog('showDeleteColumn');
+  const showDeleteTaskDialog = getDialog('showDeleteTask');
+  const showEditTaskDialog = getDialog('showEditTask');
+  const showMoveTaskDialog = getDialog('showMoveTask');
 
-  const currentColumnIdForTask = ref(null);
-  const currentColumnIdForDelete = ref(null);
-  const currentTaskIdForDelete = ref(null);
-  const currentColumnIdForEdit = ref(null);
-  const currentTaskIdForEdit = ref(null);
-  const currentColumnIdForMove = ref(null);
-  const draggingTask = ref(null);
+  // --- State
+  const currentColumnIdForTask = computed(() => store.state.board.currentColumnIdForTask);
+  const currentColumnIdForDelete = computed(() => store.state.board.currentColumnIdForDelete);
+  const currentTaskIdForDelete = computed(() => store.state.board.currentTaskIdForDelete);
+  const currentColumnIdForEdit = computed(() => store.state.board.currentColumnIdForEdit);
+  const currentTaskIdForEdit = computed(() => store.state.board.currentTaskIdForEdit);
+  const currentColumnIdForMove = computed(() => store.state.board.currentColumnIdForMove);
+
+  // --- Lifecycle
+  onMounted(async () => {
+    try {
+      await store.dispatch('board/fetchColumns');
+    } catch (error) {
+      notify({ message: error.message, type: 'negative' });
+    }
+  });
+
+  // --- Actions
 
   const handleAddColumn = async ({ inputValue: columnName, allowDeleteTask, allowEditTask, allowDeleteColumn, allowEditColumn }) => {
-    if (!columnName?.trim()) {
-      return notify({ message: 'column title should not be empty', type: 'negative', icon: 'warning' });
-    }
     try {
       await store.dispatch('board/createColumn', {
         name: columnName.trim(),
@@ -36,40 +47,30 @@ export default function useWorkspacePage() {
         allowDeleteColumn,
         allowEditColumn
       });
-      notify({ message: 'column added successfully', type: 'positive' });
-      showAddColumnDialog.value = false;
+      notify({ message: 'Column added successfully', type: 'positive' });
     } catch (error) {
-      notify({ message: error.message, type: 'negative' });
+      notify({ message: error.message, type: 'negative', icon: 'warning' });
     }
   };
 
   const handleDeleteColumn = async () => {
     try {
       await store.dispatch('board/removeColumn', currentColumnIdForDelete.value);
-      notify({ message: 'column removed successfully', type: 'info', icon: 'delete_forever' });
-      showDeleteColumnDialog.value = false;
+      notify({ message: 'Column removed successfully', type: 'info', icon: 'delete_forever' });
     } catch (error) {
       notify({ message: error.message, type: 'negative' });
-    } finally {
-      currentColumnIdForDelete.value = null;
     }
   };
 
-  const handleAddTask = async ({ inputValue: taskTitle }) => {
-    if (!taskTitle?.trim()) {
-      return notify({ message: 'task title should not be empty', type: 'negative', icon: 'warning' });
-    }
+  const handleAddTask = async ({ inputValue }) => {
     try {
       await store.dispatch('board/addTask', {
         columnId: currentColumnIdForTask.value,
-        newTaskData: { title: taskTitle.trim() },
+        newTaskData: { title: inputValue?.trim() },
       });
-      notify({ message: 'task added successfully', type: 'positive' });
-      showAddTaskDialog.value = false;
+      notify({ message: 'Task added successfully', type: 'positive' });
     } catch (error) {
-      notify({ message: error.message, type: 'negative' });
-    } finally {
-      currentColumnIdForTask.value = null;
+      notify({ message: error.message, type: 'negative', icon: 'warning' });
     }
   };
 
@@ -79,143 +80,103 @@ export default function useWorkspacePage() {
         columnId: currentColumnIdForDelete.value,
         taskId: currentTaskIdForDelete.value,
       });
-      notify({ message: 'task removed successfully', type: 'info', icon: 'delete_forever' });
-      showDeleteTaskDialog.value = false;
+      notify({ message: 'Task removed successfully', type: 'info', icon: 'delete_forever' });
     } catch (error) {
       notify({ message: error.message, type: 'negative' });
-    } finally {
-      currentColumnIdForDelete.value = null;
-      currentTaskIdForDelete.value = null;
     }
   };
 
-  const handleEditTask = async ({ inputValue: newTaskTitle }) => {
-    if (!newTaskTitle?.trim()) {
-      return notify({ message: 'task title should not be empty', type: 'negative' });
-    }
+  const handleEditTask = async ({ inputValue }) => {
     try {
       await store.dispatch('board/editTask', {
         columnId: currentColumnIdForEdit.value,
         newTaskData: {
           id: currentTaskIdForEdit.value,
-          title: newTaskTitle.trim()
-        }
+          title: inputValue?.trim(),
+        },
       });
-      notify({ message: 'task edited successfully', type: 'positive' });
-      showEditeTaskDialog.value = false;
+      notify({ message: 'Task edited successfully', type: 'positive' });
     } catch (error) {
       notify({ message: error.message, type: 'negative' });
-    } finally {
-      currentColumnIdForEdit.value = null;
-      currentTaskIdForEdit.value = null;
     }
   };
 
   const handleMoveTaskconfirmation = async () => {
-    const sourceColumnId = draggingTask.value.columnId;
-    const taskId = draggingTask.value.taskId;
-    const targetColumnId = currentColumnIdForMove.value;
-
     try {
       await store.dispatch('board/moveTask', {
-        sourceColumnId,
-        targetColumnId,
-        taskId
+        sourceColumnId: draggingTask.value?.columnId,
+        targetColumnId: currentColumnIdForMove.value,
+        taskId: draggingTask.value?.taskId,
       });
-      notify({ message: 'task moved successfully', type: 'positive' });
+      notify({ message: 'Task moved successfully', type: 'positive' });
     } catch (error) {
-      notify({ message: error.message || 'error in dropping task', type: 'negative' });
-    } finally {
-      draggingTask.value = null;
-      currentColumnIdForMove.value = null;
-      showMoveTaskDialog.value = false;
+      notify({ message: error.message || 'Error in moving task', type: 'negative' });
     }
   };
 
-  const cancelMoveTask = () => {
-    notify({ message: 'moving task canceled', type: 'info', icon: 'cancel' });
-    draggingTask.value = null;
-    currentColumnIdForMove.value = null;
-    showMoveTaskDialog.value = false;
-  };
-
-  const openAddTaskDialog = (columnId) => {
-    currentColumnIdForTask.value = columnId;
-    showAddTaskDialog.value = true;
-  };
-
-  const openDeleteColumnDialog = (columnId) => {
-    currentColumnIdForDelete.value = columnId;
-    showDeleteColumnDialog.value = true;
-  };
-
-  const openDeleteTaskDialog = (columnId, taskId) => {
-    currentColumnIdForDelete.value = columnId;
-    currentTaskIdForDelete.value = taskId;
-    showDeleteTaskDialog.value = true;
-  };
-
-  const openEditeTaskDialog = (columnId, taskId) => {
-    currentTaskIdForEdit.value = taskId;
-    currentColumnIdForEdit.value = columnId;
-    showEditeTaskDialog.value = true;
-  };
-
-  const openMoveTaskDialog = (columnId) => {
-    currentColumnIdForMove.value = columnId;
-    showMoveTaskDialog.value = true;
-  };
-
-  const onTaskDragStart = (payload) => {
-    const { columnId, taskId } = payload;
-    draggingTask.value = { columnId, taskId };
+  // --- Drag-Drop
+  const onTaskDragStart = ({ columnId, taskId }) => {
+    store.dispatch('board/setDraggingTask', { columnId, taskId });
   };
 
   const onDragOverColumn = (event) => {
     event.dataTransfer.dropEffect = 'move';
   };
-
   const onDropConfirm = async (targetColumnId) => {
-    if (!draggingTask.value) return;
-
-    const sourceColumnId = draggingTask.value.columnId;
-    const targetColumn = store.getters['board/getColumnById'](targetColumnId);
-
-    if (sourceColumnId === targetColumnId) {
-      draggingTask.value = null;
-      return;
+    try {
+      await store.dispatch('board/setColumnForMovingTask', targetColumnId);    
+    } catch (error) {
+       notify({ message: error.message, type: 'negative' });
     }
-
-    if (targetColumn && !targetColumn.allowEditColumn) {
-      notify({
-        message: 'you are not allowed to add task in this column',
-        type: 'negative',
-        icon: 'warning',
-      });
-      draggingTask.value = null;
-      return;
-    }
-
-    currentColumnIdForMove.value = targetColumnId;
-    showMoveTaskDialog.value = true;
   };
 
-  onMounted(async () => {
-    try {
-      await store.dispatch('board/fetchColumns');
-    } catch (error) {
-      notify({ message: error.message, type: 'negative' });
-    }
-  });
+  const cancelMoveTask = () => {
+    notify({ message: 'Task move cancelled', type: 'info', icon: 'cancel' });
+    store.dispatch('board/cancelMoveTask');
+  };
+
+  // --- Dialog controls
+  const openAddColumnDialog = () =>
+    store.dispatch('board/toggleDialog', { dialogName: 'showAddColumn', value: true });
+
+  const openAddTaskDialog = (columnId) => {
+    store.dispatch('board/setCurrentId', { key: 'currentColumnIdForTask', value: columnId });
+    store.dispatch('board/toggleDialog', { dialogName: 'showAddTask', value: true });
+  };
+
+  const openDeleteColumnDialog = (columnId) => {
+    store.dispatch('board/setCurrentId', { key: 'currentColumnIdForDelete', value: columnId });
+    store.dispatch('board/toggleDialog', { dialogName: 'showDeleteColumn', value: true });
+  };
+
+  const openDeleteTaskDialog = (columnId, taskId) => {
+    store.dispatch('board/setCurrentId', { key: 'currentColumnIdForDelete', value: columnId });
+    store.dispatch('board/setCurrentId', { key: 'currentTaskIdForDelete', value: taskId });
+    store.dispatch('board/toggleDialog', { dialogName: 'showDeleteTask', value: true });
+  };
+
+  const openEditTaskDialog = (columnId, taskId) => {
+    store.dispatch('board/setCurrentId', { key: 'currentColumnIdForEdit', value: columnId });
+    store.dispatch('board/setCurrentId', { key: 'currentTaskIdForEdit', value: taskId });
+    store.dispatch('board/toggleDialog', { dialogName: 'showEditTask', value: true });
+  };
+
+  const openMoveTaskDialog = (columnId, taskId) => {
+    store.dispatch('board/setCurrentId', { key: 'currentColumnIdForMove', value: columnId });
+    store.dispatch('board/setDraggingTask', { columnId, taskId });
+    store.dispatch('board/toggleDialog', { dialogName: 'showMoveTask', value: true });
+  };
 
   return {
     columns,
+    draggingTask,
     showAddColumnDialog,
     showAddTaskDialog,
     showDeleteColumnDialog,
     showDeleteTaskDialog,
-    showEditeTaskDialog,
+    showEditTaskDialog,
     showMoveTaskDialog,
+
     handleAddColumn,
     handleDeleteColumn,
     handleAddTask,
@@ -223,13 +184,15 @@ export default function useWorkspacePage() {
     handleEditTask,
     handleMoveTaskconfirmation,
     cancelMoveTask,
+
+    openAddColumnDialog,
     openAddTaskDialog,
     openDeleteColumnDialog,
     openDeleteTaskDialog,
-    openEditeTaskDialog,
+    openEditTaskDialog,
     openMoveTaskDialog,
     onTaskDragStart,
     onDragOverColumn,
-    onDropConfirm
+    onDropConfirm,
   };
 }
